@@ -43,12 +43,6 @@ export default function HomePage() {
     setResult(null);
     setCopied(false);
 
-    const token = window.grecaptcha?.getResponse() || "";
-    if (!token) {
-      setError("Lütfen reCAPTCHA doğrulamasını tamamlayın.");
-      return;
-    }
-
     setLoading(true);
     try {
       const res = await fetch("/api/activate", {
@@ -62,18 +56,17 @@ export default function HomePage() {
           username,
           password,
           device_id: deviceId,
-          recaptcha_token: token,
         }),
       });
 
       const data: ApiResult = await res.json();
       if (!res.ok || data.status !== "success") {
-        setError(data.message || "Bilinmeyen bir hata oluştu.");
+        setError(data.message || "An unknown error occurred.");
       } else {
         setResult(data);
       }
     } catch {
-      setError("Bağlantı hatası. Lütfen tekrar deneyin.");
+      setError("Connection error. Please try again.");
     } finally {
       setLoading(false);
       window.grecaptcha?.reset();
@@ -112,14 +105,14 @@ export default function HomePage() {
               ABC <em>IPTV</em> Player
             </h1>
             <p className="brand__tag">
-              Aktivasyon kodunu al veya cihazını kaydet — M3U ya da Xtream Codes ile.
+              Get an activation code or register your device — via M3U or Xtream Codes.
             </p>
           </header>
 
           <form className="panel" onSubmit={onSubmit}>
             <div className="field">
-              <span className="field__label">Bağlantı yöntemi</span>
-              <div className="segment" role="group" aria-label="Bağlantı yöntemi">
+              <span className="field__label">Connection method</span>
+              <div className="segment" role="group" aria-label="Connection method">
                 <button
                   type="button"
                   className={`segment__btn${method === "m3u" ? " is-active" : ""}`}
@@ -164,13 +157,13 @@ export default function HomePage() {
                     type="text"
                     value={server}
                     onChange={(e) => setServer(e.target.value)}
-                    placeholder="Örn: http://vamus.live:8080"
+                    placeholder="e.g. http://vamus.live:8080"
                     autoComplete="off"
                   />
                 </div>
                 <div className="field">
                   <label className="field__label" htmlFor="username">
-                    Kullanıcı adı
+                    Username
                   </label>
                   <input
                     id="username"
@@ -178,13 +171,13 @@ export default function HomePage() {
                     type="text"
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
-                    placeholder="Kullanıcı adı"
+                    placeholder="Username"
                     autoComplete="username"
                   />
                 </div>
                 <div className="field">
                   <label className="field__label" htmlFor="password">
-                    Şifre
+                    Password
                   </label>
                   <input
                     id="password"
@@ -192,7 +185,7 @@ export default function HomePage() {
                     type="text"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    placeholder="Şifre"
+                    placeholder="Password"
                     autoComplete="current-password"
                   />
                 </div>
@@ -201,7 +194,7 @@ export default function HomePage() {
 
             <div className="field">
               <label className="field__label" htmlFor="actionType">
-                İşlem
+                Action
               </label>
               <select
                 id="actionType"
@@ -209,8 +202,8 @@ export default function HomePage() {
                 value={actionType}
                 onChange={(e) => setActionType(e.target.value as ActionType)}
               >
-                <option value="activation">Aktivasyon kodu al</option>
-                <option value="device_id">Device ID ekle</option>
+                <option value="activation">Get activation code</option>
+                <option value="device_id">Add Device ID</option>
               </select>
             </div>
 
@@ -225,7 +218,7 @@ export default function HomePage() {
                   type="text"
                   value={deviceId}
                   onChange={(e) => setDeviceId(e.target.value)}
-                  placeholder="Örn: 8dd078fda0843117"
+                  placeholder="e.g. 8dd078fda0843117"
                   autoComplete="off"
                 />
               </div>
@@ -237,14 +230,14 @@ export default function HomePage() {
                   <div className="g-recaptcha" data-sitekey={SITE_KEY} data-theme="dark" />
                 ) : (
                   <p className="alert alert--error" style={{ margin: 0 }}>
-                    reCAPTCHA site key eksik.
+                    reCAPTCHA site key missing.
                   </p>
                 )}
               </div>
             </div>
 
             <button className="submit" type="submit" disabled={loading}>
-              {loading ? "Gönderiliyor…" : "Gönder"}
+              {loading ? "Submitting…" : "Submit"}
             </button>
           </form>
 
@@ -254,10 +247,10 @@ export default function HomePage() {
             <div className="result">
               {result.activation_code && (
                 <>
-                  <div className="result__label">Aktivasyon kodun</div>
+                  <div className="result__label">Your activation code</div>
                   <div className="result__code">{result.activation_code}</div>
                   <button type="button" className="copy-btn" onClick={copyCode}>
-                    {copied ? "Kopyalandı" : "Kopyala"}
+                    {copied ? "Copied" : "Copy"}
                   </button>
                 </>
               )}
@@ -266,7 +259,7 @@ export default function HomePage() {
                   <div className="result__label">Device ID</div>
                   <div className="result__code">{result.device_id}</div>
                   <button type="button" className="copy-btn" onClick={copyCode}>
-                    {copied ? "Kopyalandı" : "Kopyala"}
+                    {copied ? "Copied" : "Copy"}
                   </button>
                 </>
               )}

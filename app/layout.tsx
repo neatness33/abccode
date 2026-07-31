@@ -25,7 +25,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="tr">
+    <html lang="en">
       <body className={`${syne.variable} ${figtree.variable}`}>{children}</body>
     </html>
   );

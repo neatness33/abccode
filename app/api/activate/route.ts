@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 
 const API_URL = process.env.API_URL || "https://hemengmailal.com/apps/sbox_api.php";
 const API_TOKEN = process.env.API_TOKEN || "";
-const RECAPTCHA_SECRET = process.env.RECAPTCHA_SECRET || "";
 
 function parseM3U(m3uLink: string) {
   const match = m3uLink.match(
@@ -16,21 +15,6 @@ function parseM3U(m3uLink: string) {
   };
 }
 
-async function verifyRecaptcha(token: string): Promise<boolean> {
-  if (!RECAPTCHA_SECRET) return false;
-  const res = await fetch("https://www.google.com/recaptcha/api/siteverify", {
-    method: "POST",
-    headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    body: new URLSearchParams({
-      secret: RECAPTCHA_SECRET,
-      response: token,
-    }),
-  });
-  if (!res.ok) return false;
-  const data = await res.json();
-  return Boolean(data.success);
-}
-
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
@@ -42,19 +26,11 @@ export async function POST(req: NextRequest) {
       username: usernameInput,
       password: passwordInput,
       device_id,
-      recaptcha_token,
     } = body;
-
-    if (!recaptcha_token || !(await verifyRecaptcha(recaptcha_token))) {
-      return NextResponse.json(
-        { status: "error", message: "Lütfen reCAPTCHA doğrulamasını tamamlayın." },
-        { status: 400 }
-      );
-    }
 
     if (!API_TOKEN) {
       return NextResponse.json(
-        { status: "error", message: "API yapılandırması eksik." },
+        { status: "error", message: "API configuration is missing." },
         { status: 500 }
       );
     }
@@ -71,7 +47,7 @@ export async function POST(req: NextRequest) {
       const parsed = parseM3U(String(m3u || "").trim());
       if (!parsed) {
         return NextResponse.json(
-          { status: "error", message: "Geçersiz M3U linki!" },
+          { status: "error", message: "Invalid M3U link!" },
           { status: 400 }
         );
       }
@@ -80,14 +56,14 @@ export async function POST(req: NextRequest) {
       password = parsed.password;
     } else {
       return NextResponse.json(
-        { status: "error", message: "Geçersiz yöntem." },
+        { status: "error", message: "Invalid method." },
         { status: 400 }
       );
     }
 
     if (!server || !username || !password) {
       return NextResponse.json(
-        { status: "error", message: "Tüm alanları doldurun!" },
+        { status: "error", message: "Please fill in all fields!" },
         { status: 400 }
       );
     }
@@ -106,7 +82,7 @@ export async function POST(req: NextRequest) {
       const deviceId = String(device_id || "").trim();
       if (!deviceId) {
         return NextResponse.json(
-          { status: "error", message: "Device ID gerekli!" },
+          { status: "error", message: "Device ID is required!" },
           { status: 400 }
         );
       }
@@ -114,7 +90,7 @@ export async function POST(req: NextRequest) {
       params.set("device_id", deviceId);
     } else {
       return NextResponse.json(
-        { status: "error", message: "Geçersiz işlem türü." },
+        { status: "error", message: "Invalid action type." },
         { status: 400 }
       );
     }
@@ -131,7 +107,7 @@ export async function POST(req: NextRequest) {
       result = JSON.parse(text);
     } catch {
       return NextResponse.json(
-        { status: "error", message: "API yanıtı işlenemedi." },
+        { status: "error", message: "Failed to process API response." },
         { status: 502 }
       );
     }
@@ -146,7 +122,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(result);
   } catch {
     return NextResponse.json(
-      { status: "error", message: "Beklenmeyen bir hata oluştu." },
+      { status: "error", message: "An unexpected error occurred." },
       { status: 500 }
     );
   }
